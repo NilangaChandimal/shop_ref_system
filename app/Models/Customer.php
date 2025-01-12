@@ -15,5 +15,9 @@ class Customer extends Model
 {
     return $this->hasMany(Loan::class);
 }
+public function sales()
+    {
+        return $this->hasMany(Sale::class); // Adjust the model name if necessary
+    }
 
 }

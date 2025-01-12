@@ -65,7 +65,7 @@
                     </div>
 
                     <div>
-                        <button type="button" id="print-bill" class="btn btn-primary" onclick="printReceipt()">Print Bill</button>
+                        <button type="button" id="print-bill" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onclick="printReceipt()">Print Bill</button>
                         <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
                             Complete Sale
                         </button>

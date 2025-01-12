@@ -5,17 +5,20 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use App\Models\Loan;
 use App\Models\Product;
+use App\Models\ProductReturn;
 use App\Models\Sale;
 use Illuminate\Http\Request;
 
 class SaleController extends Controller
 {
     public function index()
-    {
-        $sales = Sale::all();
-        $totalSalesValue = $sales->sum('total_value');
-        return view('sales.index', compact('sales', 'totalSalesValue'));
-    }
+{
+    $sales = Sale::all();
+    $totalSalesValue = $sales->sum('total_value');
+
+    return view('sales.index', compact('sales', 'totalSalesValue'));
+}
+
     public function create()
 {
     $customers = Customer::all();
@@ -85,13 +88,16 @@ public function showReturnPage($saleId)
 
     return view('sales.return', compact('sale', 'products'));
 }
+
 public function processReturn(Request $request, $saleId)
 {
     $sale = Sale::findOrFail($saleId);
     $products = $request->input('products'); // Array of product IDs and quantities
     $customer = $sale->customer;
-
     $totalRefund = 0; // Total refund amount for returned products
+    $action = $request->input('action'); // Action from the form (button clicked)
+
+    $profitAdjustment = 0; // Variable to adjust profit
 
     foreach ($products as $productId => $quantity) {
         if ($quantity > 0) {
@@ -99,22 +105,43 @@ public function processReturn(Request $request, $saleId)
             $saleProduct = $sale->products()->where('product_id', $productId)->first();
 
             if ($saleProduct && $saleProduct->pivot->quantity >= $quantity) {
-                // Update product stock
-                $product->increment('quantity', $quantity);
-
-                // Reduce product quantity in the sale record
-                $saleProduct->pivot->decrement('quantity', $quantity);
-
-                // Calculate refund amount
+                // Refund amount for returned product
                 $refundAmount = $product->selling_price * $quantity;
-                $totalRefund += $refundAmount;
 
-                // Adjust sale total
+                // Calculate profit adjustment
+                $profitAdjustment += $quantity * ($product->selling_price - $product->original_price);
+
+                // Save return data if "adjust_profit_only" is selected
+                if ($action === 'adjust_profit_only') {
+                    ProductReturn::create([
+                        'sale_id' => $sale->id,
+                        'customer_name' => $customer->name,
+                        'product_name' => $product->name,
+                        'returned_quantity' => $quantity,
+                        'price_per_unit' => $product->selling_price,
+                    ]);
+                }
+
+                // Update product and sale details based on action
+                if ($action === 'adjust_quantity_and_profit') {
+                    $product->increment('quantity', $quantity); // Return stock
+                    $saleProduct->pivot->decrement('quantity', $quantity); // Reduce sale quantity
+                } elseif ($action === 'adjust_profit_only') {
+                    $saleProduct->pivot->decrement('quantity', $quantity); // Reduce sale quantity only
+                }
+
+                // Deduct refund amount from total value of the sale
                 $sale->total_value -= $refundAmount;
                 $sale->save();
             }
         }
     }
+
+    // Update profit
+    $sale->profit -= $profitAdjustment;
+    $sale->save();
+
+    // Handle loan and balance updates
     if ($totalRefund > 0) {
         if ($customer->loan > 0) {
             if ($customer->loan >= $totalRefund) {
@@ -126,13 +153,14 @@ public function processReturn(Request $request, $saleId)
             }
             $customer->save();
         }
+
         if ($totalRefund > 0) {
             $sale->balance += $totalRefund;
             $sale->save();
         }
     }
 
-    return redirect()->route('sales.index')->with('success', 'Product returned and loan updated successfully.');
+    return redirect()->route('sales.index')->with('success', 'Product returned and totals updated successfully.');
 }
 
 }

@@ -1,86 +1,108 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+        <div class="flex justify-between items-center px-6 py-6 bg-white shadow-sm rounded-lg">
+            <h2 class="text-2xl font-bold text-gray-900 tracking-tight">
                 {{ __('Sales Transactions') }}
             </h2>
-            <div class="text-right">
-                <span class="text-gray-600 font-bold">Total Sales Value:</span>
-                <span class="text-green-600 font-bold text-lg">{{ number_format($totalSalesValue, 2) }}</span>
+            <div class="flex items-center space-x-2 bg-gradient-to-r from-emerald-50 to-white px-8 py-4 rounded-lg border border-emerald-100">
+                <span class="text-gray-700 font-medium">Total Sales Value:</span>
+                <span class="text-emerald-600 font-bold text-xl" id="totalSalesValue">Rs. 0.00</span>
             </div>
         </div>
     </x-slot>
 
-    <div class="py-12">
+    <div class="py-12 bg-gray-50">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
-                @if (session('success'))
-                    <div class="bg-green-100 text-green-800 px-4 py-2 rounded mb-4">
-                        {{ session('success') }}
-                    </div>
-                @endif
-
-                <table class="table-auto w-full border-collapse border border-gray-300">
-                    <thead>
-                        <tr class="bg-gray-100">
-                            <th class="border border-gray-300 px-4 py-2">#</th>
-                            <th class="border border-gray-300 px-4 py-2">Customer</th>
-                            <th class="border border-gray-300 px-4 py-2">Product</th>
-                            <th class="border border-gray-300 px-4 py-2">Quantity</th>
-                            <th class="border border-gray-300 px-4 py-2">Total Value</th>
-                            <th class="border border-gray-300 px-4 py-2">Profit</th>
-                            <th class="border border-gray-300 px-4 py-2">Paid Value</th>
-                            <th class="border border-gray-300 px-4 py-2">Balance</th>
-                            <th class="border border-gray-300 px-4 py-2">Date</th>
-                            <th class="border border-gray-300 px-4 py-2">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($sales as $sale)
-                            <tr>
-                                <td class="border border-gray-300 px-4 py-2">{{ $loop->iteration }}</td>
-                                <td class="border border-gray-300 px-4 py-2">{{ $sale->customer->name }}</td>
-                                <td class="border border-gray-300 px-4 py-2">
-                                    @foreach ($sale->products as $product)
-                                        {{ $product->name }} (Price: {{ number_format($product->selling_price, 2) }})<br>
-                                    @endforeach
-                                </td>
-                                <td class="border border-gray-300 px-4 py-2">
-                                    @foreach ($sale->products as $product)
-                                        {{ $product->pivot->quantity }}<br>
-                                    @endforeach
-                                </td>
-                                <td class="border border-gray-300 px-4 py-2">
+            <div class="bg-white overflow-hidden shadow-lg rounded-xl">
+                <div class="p-6">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead>
+                                <tr class="bg-gradient-to-r from-gray-50 to-white">
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Value</th>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Profit</th>
+                                    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="salesTable" class="bg-white divide-y divide-gray-200">
+                                @forelse ($sales as $sale)
                                     @php
-                                        $total = 0;
-                                        $profit = 0;
-                                        foreach ($sale->products as $product) {
-                                            $total += $product->pivot->quantity * $product->selling_price;
-                                            $profit += $product->pivot->quantity * ($product->selling_price - $product->original_price);
-                                        }
+                                        $totalValue = $sale->products->sum(fn($product) => $product->pivot->quantity * $product->selling_price);
                                     @endphp
-                                    {{ number_format($total, 2) }}
-                                </td>
-                                <td class="border border-gray-300 px-4 py-2">{{ number_format($profit, 2) }}</td>
-                                <td class="border border-gray-300 px-4 py-2">{{ number_format($sale->paid_value, 2) }}</td>
-                                <td class="border border-gray-300 px-4 py-2">{{ number_format($sale->balance, 2) }}</td>
-                                <td class="border border-gray-300 px-4 py-2">{{ $sale->created_at->format('Y-m-d H:i') }}</td>
-                                <td class="border border-gray-300 px-4 py-2">
-                                    <form action="{{ route('returns.create', $sale->id) }}" method="GET">
-                                        <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                                            Return
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="10" class="text-center py-4">No sales found.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                                    <tr class="hover:bg-blue-50 transition-colors duration-200">
+                                        <td class="px-6 py-4 text-sm text-gray-500">{{ $loop->iteration }}</td>
+                                        <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ $sale->customer->name }}</td>
+                                        <td class="px-6 py-4">
+                                            <div class="space-y-2">
+                                                @foreach ($sale->products as $product)
+                                                    <div class="text-sm">
+                                                        <span class="text-gray-900 font-medium">{{ $product->name }}</span>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 text-sm font-medium text-gray-900">
+                                            @foreach ($sale->products as $product)
+                                                <div>{{ $product->pivot->quantity }}</div>
+                                            @endforeach
+                                        </td>
+                                        <td class="px-6 py-4 text-sm font-medium text-gray-900 total-value">
+                                            Rs. {{ number_format($totalValue, 2) }}
+                                        </td>
+                                        <td class="px-6 py-4 text-sm font-medium text-emerald-600">
+                                            Rs. {{ number_format($sale->products->sum(fn($product) => $product->pivot->quantity * ($product->selling_price - $product->original_price)), 2) }}
+                                        </td>
+                                        <td class="px-6 py-4 text-sm">
+                                            <form action="{{ route('returns.create', $sale->id) }}" method="GET">
+                                                <button type="submit"
+                                                        class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700">
+                                                    Return
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="7" class="px-6 py-4 text-center text-gray-500">No sales found.</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                            <tfoot>
+                                <tr class="bg-gray-100">
+                                    <td colspan="4" class="px-6 py-4 text-right font-bold">Total Sales Sum:</td>
+                                    <td id="totalSalesSum" class="px-6 py-4 text-left font-bold text-emerald-600">Rs. 0.00</td>
+                                    <td colspan="2"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            let totalSalesSum = 0;
+
+            // Select all "Total Value" cells
+            const totalValueCells = document.querySelectorAll('.total-value');
+
+            // Calculate total sum
+            totalValueCells.forEach(cell => {
+                const value = parseFloat(cell.textContent.replace('Rs.', '').replace(',', '').trim());
+                if (!isNaN(value)) {
+                    totalSalesSum += value;
+                }
+            });
+
+            // Update total sales sum in footer and header
+            document.getElementById('totalSalesSum').textContent = `Rs. ${totalSalesSum.toFixed(2)}`;
+            document.getElementById('totalSalesValue').textContent = `Rs. ${totalSalesSum.toFixed(2)}`;
+        });
+    </script>
 </x-app-layout>

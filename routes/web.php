@@ -4,6 +4,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LoanController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ReturnController;
 use App\Http\Controllers\SaleController;
 use Illuminate\Support\Facades\Route;
 
@@ -53,13 +54,6 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/sales/{sale}/return', [SaleController::class, 'showReturnPage'])->name('returns.create');
     Route::post('/sales/{sale}/return', [SaleController::class, 'processReturn'])->name('returns.store');
 
-
-//     Route::get('/sale/receipt/{saleId}', [SaleController::class, 'generateReceipt'])->name('sale.receipt');
-//     // In routes/web.php
-// Route::get('/sales/form', [SaleController::class, 'showForm'])->name('sales.form');
-
-
-
 });
 
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
@@ -70,7 +64,6 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
 });
 
-// Route::middleware(['auth:sanctum', 'verified'])->group(function () {
-// Route::get('/returns', [SaleController::class, 'returnPage'])->name('returns.index');
-// Route::post('/returns', [SaleController::class, 'processReturn'])->name('returns.store');
-// });
+Route::middleware(['auth:sanctum', 'verified'])->group(function () {
+    Route::get('/returns', [ReturnController::class, 'index'])->name('returns.index');
+});
