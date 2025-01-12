@@ -133,6 +133,50 @@
                 </div>
             </div>
 
+            <div class="py-12 bg-gray-50">
+                <div class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+                    <!-- Key Metrics Section -->
+                    <div class="grid grid-cols-1 gap-6 mb-8 md:grid-cols-2 lg:grid-cols-2">
+                        <!-- Total Returns Card -->
+                        <div class="overflow-hidden transition-all duration-300 bg-white rounded-lg shadow-sm hover:shadow-lg">
+                            <div class="p-6">
+                                <div class="flex items-center justify-between">
+                                    <div class="space-y-2">
+                                        <p class="text-sm font-medium text-gray-500">Total Returns</p>
+                                        <p class="text-2xl font-bold text-red-600">Rs. {{ number_format($totalReturns, 2) }}</p>
+                                    </div>
+                                    <div class="p-3 bg-red-100 rounded-full">
+                                        <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                  d="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3zm0 0c0-1.657 1.343-3 3-3s3 1.343 3 3M6 9a2 2 0 11-4 0 2 2 0 014 0z" />
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Total Loans Card -->
+                        <div class="overflow-hidden transition-all duration-300 bg-white rounded-lg shadow-sm hover:shadow-lg">
+                            <div class="p-6">
+                                <div class="flex items-center justify-between">
+                                    <div class="space-y-2">
+                                        <p class="text-sm font-medium text-gray-500">Total Loans</p>
+                                        <p class="text-2xl font-bold text-green-600">Rs. {{ number_format($totalLoans, 2) }}</p>
+                                    </div>
+                                    <div class="p-3 bg-green-100 rounded-full">
+                                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                  d="M17 9V7a4 4 0 00-8 0v2m8 0a4 4 0 01-8 0m8 0v6m-8-6v6M8 15H6m12 0h-2m0 0v2a2 2 0 01-2 2H10a2 2 0 01-2-2v-2" />
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
             <!-- Charts Section -->
             <div class="grid gap-6 mb-8">
                 <!-- Sales and Profit Chart -->

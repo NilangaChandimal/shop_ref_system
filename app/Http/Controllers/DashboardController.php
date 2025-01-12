@@ -106,6 +106,12 @@ class DashboardController extends Controller
                                           ->groupBy('customer_name')
                                           ->get();
 
+
+        $totalReturns = ProductReturn::sum(DB::raw('returned_quantity * price_per_unit'));
+
+        // Calculate total loan amount
+        $totalLoans = DB::table('loans')->sum('amount');
+
         // Pass data to the view
         return view('dashboard', compact(
             'totalCustomers',
@@ -123,7 +129,9 @@ class DashboardController extends Controller
             'monthlyProfitData',
             'labels',
             'customerSalesData',
-            'refundData'
+            'refundData',
+            'totalReturns',
+            'totalLoans'
         ));
     }
 }
