@@ -35,6 +35,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
     Route::get('/products/discounts', [ProductController::class, 'discounts'])->name('products.discounts');
     Route::put('/products/{product}/discount', [ProductController::class, 'updateDiscount'])->name('products.updateDiscount');
+    Route::get('/products/display', [ProductController::class, 'display'])->name('products.display');
 
 });
 

@@ -14,6 +14,7 @@ class Product extends Model
         'selling_price',
         'unit',
         'quantity',
+        'image',
     ];
 
     public static function boot()

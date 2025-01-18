@@ -8,7 +8,7 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
-                <form method="POST" action="{{ route('products.store') }}">
+                <form method="POST" action="{{ route('products.store') }}" enctype="multipart/form-data">
                     @csrf
 
                     <div class="mb-4">
@@ -39,6 +39,10 @@
                     <div class="mb-4">
                         <label for="quantity" class="block text-gray-700">Quantity</label>
                         <input type="number" name="quantity" id="quantity" class="w-full border-gray-300 rounded-md shadow-sm" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="image" class="block text-gray-700">Product Image</label>
+                        <input type="file" name="image" id="image" class="w-full border-gray-300 rounded-md shadow-sm">
                     </div>
 
                     <div>

@@ -10,8 +10,6 @@
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
                 <form action="{{ route('returns.store', $sale->id) }}" method="POST">
                     @csrf
-
-                    <!-- Products to Return -->
                     <div>
                         @foreach ($products as $product)
                             <div class="mb-4 flex items-center space-x-4">
@@ -29,14 +27,11 @@
                         @endforeach
                     </div>
 
-                    <!-- Buttons -->
                     <div>
-                        <!-- Button to process return with quantity and profit adjustment -->
                         <button type="submit" name="action" value="adjust_quantity_and_profit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                             Process Return (Quantity & Profit Adjusted)
                         </button>
 
-                        <!-- Button to process return with profit adjustment only -->
                         <button type="submit" name="action" value="adjust_profit_only" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                             Process Return (Profit Adjusted Only)
                         </button>

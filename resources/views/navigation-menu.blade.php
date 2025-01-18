@@ -19,7 +19,8 @@
                         ['products.discounts', 'Discount'],
                         ['customers.index', 'Customer'],
                         ['sales.index', 'Sales'],
-                        ['returns.index', 'Returns']
+                        ['returns.index', 'Returns'],
+                        ['products.display', 'Display']
                     ] as [$route, $label])
                         <x-nav-link
                             href="{{ route($route) }}"
@@ -140,7 +141,8 @@
                 ['products.discounts', 'Discount'],
                 ['customers.index', 'Customer'],
                 ['sales.index', 'Sales'],
-                ['returns.index', 'Returns']
+                ['returns.index', 'Returns'],
+                ['products.display', 'Display']
             ] as [$route, $label])
                 <x-responsive-nav-link
                     href="{{ route($route) }}"

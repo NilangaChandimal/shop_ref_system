@@ -21,6 +21,7 @@ return new class extends Migration
             $table->decimal('profit', 10, 2)->default(0); // Removed ->after('selling_price')
             $table->string('unit');
             $table->integer('quantity');
+            $table->string('image')->nullable();
             $table->timestamps();
         });
     }

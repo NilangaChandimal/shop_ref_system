@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -11,8 +12,7 @@ class ProductController extends Controller
 {
     $query = Product::query();
 
-    // Capture the search input
-    $search = $request->input('search', ''); // Default to an empty string if not set
+    $search = $request->input('search', '');
 
     if (!empty($search)) {
         $query->where('name', 'like', "%$search%");
@@ -30,34 +30,40 @@ class ProductController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'original_price' => 'required|numeric|min:0',
-            'displayed_price' => 'required|numeric|min:0',
-            'discount' => 'required|numeric|min:0|max:100',
-            'unit' => 'required|string|max:50',
-            'quantity' => 'required|integer|min:0',
-        ]);
+{
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'original_price' => 'required|numeric|min:0',
+        'displayed_price' => 'required|numeric|min:0',
+        'discount' => 'required|numeric|min:0|max:100',
+        'unit' => 'required|string|max:50',
+        'quantity' => 'required|integer|min:0',
+        'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+    ]);
 
-        // Calculate selling price and profit
-        $selling_price = $validated['displayed_price'] * ((100 - $validated['discount']) / 100);
-        $profit = $selling_price - $validated['original_price'];
+    $imagePath = null;
 
-        // Save the product
-        Product::create([
-            'name' => $validated['name'],
-            'original_price' => $validated['original_price'],
-            'displayed_price' => $validated['displayed_price'],
-            'discount' => $validated['discount'],
-            'selling_price' => $selling_price,
-            'profit' => $profit,
-            'unit' => $validated['unit'],
-            'quantity' => $validated['quantity'],
-        ]);
-
-        return redirect()->route('products.index')->with('success', 'Product created successfully!');
+    if ($request->hasFile('image')) {
+        $imagePath = $request->file('image')->store('products', 'public');
     }
+
+    $selling_price = $validated['displayed_price'] * ((100 - $validated['discount']) / 100);
+    $profit = $selling_price - $validated['original_price'];
+
+    Product::create([
+        'name' => $validated['name'],
+        'original_price' => $validated['original_price'],
+        'displayed_price' => $validated['displayed_price'],
+        'discount' => $validated['discount'],
+        'selling_price' => $selling_price,
+        'profit' => $profit,
+        'unit' => $validated['unit'],
+        'quantity' => $validated['quantity'],
+        'image' => $imagePath,
+    ]);
+
+    return redirect()->route('products.index')->with('success', 'Product created successfully!');
+}
     public function edit(Product $product)
     {
         return view('products.edit', compact('product'));
@@ -65,34 +71,38 @@ class ProductController extends Controller
 
 
     public function update(Request $request, Product $product)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'original_price' => 'required|numeric|min:0',
-            'displayed_price' => 'required|numeric|min:0',
-            'discount' => 'required|numeric|min:0|max:100',
-            'unit' => 'required|string|max:50',
-            'quantity' => 'required|integer|min:0',
-        ]);
+{
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'original_price' => 'required|numeric',
+        'displayed_price' => 'required|numeric',
+        'discount' => 'required|numeric',
+        'unit' => 'required|string',
+        'quantity' => 'required|integer',
+        'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+    ]);
 
-        // Calculate selling price and profit
-        $selling_price = $validated['displayed_price'] * ((100 - $validated['discount']) / 100);
-        $profit = $selling_price - $validated['original_price'];
+    $product->name = $request->name;
+    $product->original_price = $request->original_price;
+    $product->displayed_price = $request->displayed_price;
+    $product->discount = $request->discount;
+    $product->unit = $request->unit;
+    $product->quantity = $request->quantity;
 
-        // Update the product
-        $product->update([
-            'name' => $validated['name'],
-            'original_price' => $validated['original_price'],
-            'displayed_price' => $validated['displayed_price'],
-            'discount' => $validated['discount'],
-            'selling_price' => $selling_price,
-            'profit' => $profit,
-            'unit' => $validated['unit'],
-            'quantity' => $validated['quantity'],
-        ]);
+    if ($request->hasFile('image')) {
+        if ($product->image && Storage::exists($product->image)) {
+            Storage::delete($product->image);
+        }
 
-        return redirect()->route('products.index')->with('success', 'Product updated successfully!');
+        $imagePath = $request->file('image')->store('images', 'public');
+
+        $product->image = $imagePath;
     }
+
+    $product->save();
+
+    return redirect()->route('products.index')->with('success', 'Product updated successfully.');
+}
     public function destroy(Product $product)
     {
         $product->delete();
@@ -104,15 +114,13 @@ class ProductController extends Controller
 {
     $query = Product::query();
 
-    // Capture the search input
-    $search = $request->input('search', ''); // Default to an empty string if not set
+    $search = $request->input('search', '');
 
     if (!empty($search)) {
         $query->where('name', 'like', "%$search%");
     }
 
-    // Fetch filtered results
-    $products = $query->paginate(10); // Paginate results for better handling of large data
+    $products = $query->paginate(10);
 
     return view('products.discounts', compact('products', 'search'));
 }
@@ -123,13 +131,23 @@ public function updateDiscount(Request $request, Product $product)
         'discount' => 'required|numeric|min:0|max:100',
     ]);
 
-    // Update the discount and recalculate selling price
     $product->discount = $validated['discount'];
     $product->selling_price = $product->displayed_price * ((100 - $product->discount) / 100);
     $product->profit = $product->original_price - $product->selling_price;
     $product->save();
 
     return redirect()->route('products.discounts')->with('success', 'Discount updated successfully!');
+}
+
+public function display(Request $request)
+{
+    $search = $request->input('search');
+
+    $products = Product::when($search, function($query, $search) {
+        return $query->where('name', 'like', '%' . $search . '%');
+    })->get();
+
+    return view('products.display', compact('products'));
 }
 
 }

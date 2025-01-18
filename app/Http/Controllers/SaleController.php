@@ -27,7 +27,6 @@ class SaleController extends Controller
 }
 public function store(Request $request)
 {
-    // Validate request data
     $validated = $request->validate([
         'customer_id' => 'required|exists:customers,id',
         'products' => 'required|array',
@@ -36,12 +35,10 @@ public function store(Request $request)
         'paid_value' => 'required|numeric|min:0',
     ]);
 
-    // Calculate total value
     $totalValue = 0;
     foreach ($validated['products'] as $product) {
         $productModel = Product::findOrFail($product['product_id']);
 
-        // Check stock
         if ($productModel->quantity < $product['quantity']) {
             return redirect()->back()->withErrors([
                 'products' => "Insufficient stock for product: {$productModel->name}. Available quantity: {$productModel->quantity}.",
@@ -51,11 +48,9 @@ public function store(Request $request)
         $totalValue += $productModel->selling_price * $product['quantity'];
     }
 
-    // Calculate balance
     $paidValue = $validated['paid_value'];
     $balance = $paidValue - $totalValue;
 
-    // Create the sale
     $sale = Sale::create([
         'customer_id' => $validated['customer_id'],
         'total_value' => $totalValue,
@@ -63,18 +58,16 @@ public function store(Request $request)
         'balance' => $balance,
     ]);
 
-    // Attach products to the sale and update stock
     foreach ($validated['products'] as $product) {
         $productModel = Product::findOrFail($product['product_id']);
         $productModel->decrement('quantity', $product['quantity']);
         $sale->products()->attach($product['product_id'], ['quantity' => $product['quantity']]);
     }
 
-    // Create a loan if balance is negative
     if ($balance < 0) {
         Loan::create([
             'customer_id' => $validated['customer_id'],
-            'amount' => abs($balance), // Loan amount is the absolute value of the negative balance
+            'amount' => abs($balance),
         ]);
     }
 
@@ -84,7 +77,7 @@ public function store(Request $request)
 public function showReturnPage($saleId)
 {
     $sale = Sale::findOrFail($saleId);
-    $products = $sale->products; // Get all products associated with this sale
+    $products = $sale->products;
 
     return view('sales.return', compact('sale', 'products'));
 }
@@ -92,12 +85,12 @@ public function showReturnPage($saleId)
 public function processReturn(Request $request, $saleId)
 {
     $sale = Sale::findOrFail($saleId);
-    $products = $request->input('products'); // Array of product IDs and quantities
+    $products = $request->input('products');
     $customer = $sale->customer;
-    $totalRefund = 0; // Total refund amount for returned products
-    $action = $request->input('action'); // Action from the form (button clicked)
+    $totalRefund = 0;
+    $action = $request->input('action');
 
-    $profitAdjustment = 0; // Variable to adjust profit
+    $profitAdjustment = 0;
 
     foreach ($products as $productId => $quantity) {
         if ($quantity > 0) {
@@ -105,13 +98,10 @@ public function processReturn(Request $request, $saleId)
             $saleProduct = $sale->products()->where('product_id', $productId)->first();
 
             if ($saleProduct && $saleProduct->pivot->quantity >= $quantity) {
-                // Refund amount for returned product
                 $refundAmount = $product->selling_price * $quantity;
 
-                // Calculate profit adjustment
                 $profitAdjustment += $quantity * ($product->selling_price - $product->original_price);
 
-                // Save return data if "adjust_profit_only" is selected
                 if ($action === 'adjust_profit_only') {
                     ProductReturn::create([
                         'sale_id' => $sale->id,
@@ -122,33 +112,30 @@ public function processReturn(Request $request, $saleId)
                     ]);
                 }
 
-                // Update product and sale details based on action
                 if ($action === 'adjust_quantity_and_profit') {
-                    $product->increment('quantity', $quantity); // Return stock
-                    $saleProduct->pivot->decrement('quantity', $quantity); // Reduce sale quantity
+                    $product->increment('quantity', $quantity);
+                    $saleProduct->pivot->decrement('quantity', $quantity);
                 } elseif ($action === 'adjust_profit_only') {
-                    $saleProduct->pivot->decrement('quantity', $quantity); // Reduce sale quantity only
+                    $saleProduct->pivot->decrement('quantity', $quantity);
                 }
 
-                // Deduct refund amount from total value of the sale
                 $sale->total_value -= $refundAmount;
+                $sale->balance += $refundAmount;
                 $sale->save();
             }
         }
     }
 
-    // Update profit
-    $sale->profit -= $profitAdjustment;
-    $sale->save();
+    // $sale->profit -= $profitAdjustment;
+    // $sale->save();
 
-    // Handle loan and balance updates
     if ($totalRefund > 0) {
         if ($customer->loan > 0) {
             if ($customer->loan >= $totalRefund) {
                 $customer->loan -= $totalRefund;
-                $totalRefund = 0; // Fully covered by the loan
+                $totalRefund = 0;
             } else {
-                $totalRefund -= $customer->loan; // Partially covered
+                $totalRefund -= $customer->loan;
                 $customer->loan = 0;
             }
             $customer->save();

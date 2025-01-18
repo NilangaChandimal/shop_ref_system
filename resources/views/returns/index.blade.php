@@ -51,7 +51,6 @@
                     </div>
                 </div>
 
-                <!-- Pagination -->
                 <div class="p-6 bg-gray-50">
                     {{ $returns->links() }}
                 </div>
