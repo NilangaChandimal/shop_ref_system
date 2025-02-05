@@ -36,7 +36,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/products/discounts', [ProductController::class, 'discounts'])->name('products.discounts');
     Route::put('/products/{product}/discount', [ProductController::class, 'updateDiscount'])->name('products.updateDiscount');
     Route::get('/products/display', [ProductController::class, 'display'])->name('products.display');
-
+    Route::get('/products/add', [ProductController::class, 'add'])->name('products.add');
+    Route::put('/products/{product}/add', [ProductController::class, 'updateProduct'])->name('products.updateProduct');
 });
 
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {

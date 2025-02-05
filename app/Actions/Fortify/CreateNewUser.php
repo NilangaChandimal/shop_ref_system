@@ -19,6 +19,11 @@ class CreateNewUser implements CreatesNewUsers
      */
     public function create(array $input): User
     {
+        // Check if the number of users is already 2 or more
+        if (User::count() >= 2) {
+            abort(403, 'User creation limit reached.'); // Prevent further user creation
+        }
+
         Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],

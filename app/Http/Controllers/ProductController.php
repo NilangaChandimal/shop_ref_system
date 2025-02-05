@@ -150,4 +150,33 @@ public function display(Request $request)
     return view('products.display', compact('products'));
 }
 
+public function add(Request $request)
+{
+    $query = Product::query();
+
+    $search = $request->input('search', '');
+
+    if (!empty($search)) {
+        $query->where('name', 'like', "%$search%");
+    }
+
+    $products = $query->paginate(10);
+
+    return view('products.addProduct', compact('products', 'search'));
+}
+
+public function updateProduct(Request $request, Product $product)
+{
+    $validated = $request->validate([
+        'quantity' => 'required|integer|min:0',
+    ]);
+
+    // Add the quantity from the form to the existing quantity
+    $product->quantity += $validated['quantity'];
+    $product->save();
+
+    return redirect()->route('products.add')->with('success', 'Product stock updated successfully!');
+}
+
+
 }
