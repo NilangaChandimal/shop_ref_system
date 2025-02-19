@@ -16,6 +16,7 @@ return new class extends Migration
         $table->string('name');
         $table->string('phone_number')->unique();
         $table->text('address');
+        $table->string('root');
         // $table->decimal('loan', 10, 2)->default(0); // Assuming loan can be zero if there's no loan
         $table->timestamps();
     });

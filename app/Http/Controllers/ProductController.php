@@ -120,7 +120,7 @@ class ProductController extends Controller
         $query->where('name', 'like', "%$search%");
     }
 
-    $products = $query->paginate(10);
+    $products = $query->paginate(100);
 
     return view('products.discounts', compact('products', 'search'));
 }
@@ -160,7 +160,7 @@ public function add(Request $request)
         $query->where('name', 'like', "%$search%");
     }
 
-    $products = $query->paginate(10);
+    $products = $query->paginate(100);
 
     return view('products.addProduct', compact('products', 'search'));
 }
@@ -177,6 +177,5 @@ public function updateProduct(Request $request, Product $product)
 
     return redirect()->route('products.add')->with('success', 'Product stock updated successfully!');
 }
-
 
 }

@@ -19,7 +19,7 @@ class CustomerController extends Controller
     }
 
     // Apply the query and paginate results
-    $customers = $query->paginate(10); // Paginate to handle large datasets
+    $customers = $query->paginate(100); // Paginate to handle large datasets
     $totalCustomers = $query->count(); // Get the total count of filtered results
 
     return view('customers.index', compact('customers', 'totalCustomers', 'search'));
@@ -37,6 +37,7 @@ public function store(Request $request)
         'name' => 'required|string|max:255',
         'phone_number' => 'required|string|max:15|unique:customers',
         'address' => 'required|string|max:500',
+        'root' => 'required|string|max:255',
         // 'loan' => 'nullable|numeric|min:0',
     ]);
 
@@ -56,6 +57,7 @@ public function update(Request $request, Customer $customer)
         'name' => 'required|string|max:255',
         'phone_number' => 'required|string|max:15|unique:customers,phone_number,' . $customer->id,
         'address' => 'required|string|max:500',
+        'root' => 'required|string|max:255',
         // 'loan' => 'nullable|numeric|min:0',
     ]);
 

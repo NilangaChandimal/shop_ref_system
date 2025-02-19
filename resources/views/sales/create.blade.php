@@ -4,6 +4,12 @@
             {{ __('POS System') }}
         </h2>
     </x-slot>
+    <style>
+        #discountModal .scrollable-content {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+    </style>
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -13,60 +19,102 @@
                         {{ session('success') }}
                     </div>
                 @endif
+                <div class="mb-6 border-b pb-4">
+                    <button type="button" onclick="toggleModal('discountModal')"
+                        class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">
+                        Manage Discounts
+                    </button>
+                </div>
+
+                <div id="discountModal"
+                    class="fixed inset-0 hidden bg-black bg-opacity-50 flex items-center justify-center">
+                    <div class="bg-white rounded-lg shadow-lg p-6 w-96">
+                        <h3 class="text-lg font-semibold mb-3">Product Discounts</h3>
+                        <div class="scrollable-content grid grid-cols-1 gap-4">
+                            @foreach ($products as $product)
+                                <div class="flex items-center gap-3 border p-3 rounded">
+                                    <span class="flex-1">{{ $product->name }}</span>
+                                    <input type="number" id="discount-{{ $product->id }}"
+                                        value="{{ $product->discount }}"
+                                        class="w-20 border rounded px-2 py-1 text-right" min="0" max="100"
+                                        step="0.01">
+                                    <span class="mr-2">%</span>
+                                    <button onclick="updateDiscount({{ $product->id }})"
+                                        class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600">Update</button>
+                                </div>
+                            @endforeach
+                        </div>
+                        <div class="mt-4 flex justify-end">
+                            <button onclick="toggleModal('discountModal')"
+                                class="bg-gray-500 text-white px-4 py-2 rounded">Close</button>
+                        </div>
+                    </div>
+                </div>
 
                 <form action="{{ route('sales.store') }}" method="POST">
                     @csrf
-                    <!-- Customer Selection -->
-                    <div class="mb-4">
-                        <label for="customer_id" class="block text-gray-700 font-bold mb-2">Customer:</label>
-                        <select id="customer_id" name="customer_id" class="w-full border-gray-300 rounded-md shadow-sm" required>
-                            <option value="">Select Customer</option>
-                            @foreach ($customers as $customer)
-                                <option value="{{ $customer->id }}">{{ $customer->name }}</option>
-                            @endforeach
-                        </select>
+
+                    <div class="mb-4 relative">
+                        <label for="customer_search" class="block text-gray-700 font-bold mb-2">Customer:</label>
+                        <input type="text" id="customer_search" class="w-full border-gray-300 rounded-md shadow-sm"
+                            placeholder="Search customer..." autocomplete="off" oninput="searchCustomers(this.value)">
+                        <input type="hidden" id="customer_id" name="customer_id">
+                        <div id="customer_results"
+                            class="hidden absolute z-10 w-full bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+                        </div>
                     </div>
 
-                    <!-- Products Selection (Cart) -->
                     <div id="cart" class="mb-4">
                         <label for="products" class="block text-gray-700 font-bold mb-2">Products:</label>
 
                         <div id="product-section" class="space-y-4">
-                            <!-- Dynamic Product Entries -->
                             <div class="flex items-center space-x-4" id="product-0">
-                                <select name="products[0][product_id]" class="w-1/2 border-gray-300 rounded-md shadow-sm" required onchange="calculateTotal()">
+                                <select name="products[0][product_id]"
+                                    class="w-1/2 border-gray-300 rounded-md shadow-sm" required
+                                    onchange="calculateTotal()">
                                     <option value="">Select Product</option>
                                     @foreach ($products as $product)
-                                        <option value="{{ $product->id }}" data-price="{{ $product->selling_price }}" data-discount="{{ $product->discount }}">{{ $product->name }} ({{ number_format($product->selling_price, 2) }}) (Dis: {{ number_format($product->discount) }})</option>
+                                        <option value="{{ $product->id }}" data-price="{{ $product->selling_price }}"
+                                            data-discount="{{ $product->discount }}">{{ $product->name }} (Dis:
+                                            {{ number_format($product->discount) }})</option>
                                     @endforeach
                                 </select>
-                                <input type="number" name="products[0][quantity]" class="w-1/4 border-gray-300 rounded-md shadow-sm" min="1" value="1" required onchange="calculateTotal()">
-                                <button type="button" onclick="removeProduct(this)" class="bg-red-500 text-white p-2 rounded">Remove</button>
+                                <input type="number" name="products[0][quantity]"
+                                    class="w-1/4 border-gray-300 rounded-md shadow-sm" min="1" value="1"
+                                    required onchange="calculateTotal()">
+                                <button type="button" onclick="removeProduct(this)"
+                                    class="bg-red-500 text-white p-2 rounded">Remove</button>
                             </div>
                         </div>
-                        <button type="button" onclick="addProduct()" class="bg-blue-500 text-white p-2 rounded mt-4">Add Another Product</button>
+                        <button type="button" onclick="addProduct()"
+                            class="bg-blue-500 text-white p-2 rounded mt-4">Add Another Product</button>
                     </div>
 
-                    <!-- Total Section -->
                     <div class="mb-4">
                         <label for="total_value" class="block text-gray-700 font-bold mb-2">Total Value:</label>
-                        <input type="text" id="total_value" name="total_value" class="w-full border-gray-300 rounded-md shadow-sm" readonly>
+                        <input type="text" id="total_value" name="total_value"
+                            class="w-full border-gray-300 rounded-md shadow-sm" readonly>
                     </div>
 
-                    <!-- Payment Section -->
                     <div class="mb-4">
                         <label for="paid_value" class="block text-gray-700 font-bold mb-2">Paid Value:</label>
-                        <input type="number" id="paid_value" name="paid_value" class="w-full border-gray-300 rounded-md shadow-sm" min="0" required onchange="calculateBalance()">
+                        <input type="number" id="paid_value" name="paid_value"
+                            class="w-full border-gray-300 rounded-md shadow-sm" min="0" required
+                            onchange="calculateBalance()">
                     </div>
 
                     <div class="mb-4">
                         <label for="balance" class="block text-gray-700 font-bold mb-2">Balance:</label>
-                        <input type="text" id="balance" name="balance" class="w-full border-gray-300 rounded-md shadow-sm" readonly>
+                        <input type="text" id="balance" name="balance"
+                            class="w-full border-gray-300 rounded-md shadow-sm" readonly>
                     </div>
 
                     <div>
-                        <button type="button" id="print-bill" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onclick="printReceipt()">Print Bill</button>
-                        <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                        <button type="button" id="print-bill"
+                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                            onclick="printReceipt()">Print Bill</button>
+                        <button type="submit"
+                            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
                             Complete Sale
                         </button>
                     </div>
@@ -75,23 +123,67 @@
         </div>
     </div>
 
-    <!-- JS for dynamic product addition/removal and calculation -->
     <script>
+        let customers = {!! json_encode(
+            $customers->map(function ($customer) {
+                return [
+                    'id' => $customer->id,
+                    'text' => $customer->name . ' - ' . $customer->address . ' - ' . $customer->root,
+                ];
+            }),
+        ) !!};
+
+        function searchCustomers(query) {
+            const resultsContainer = document.getElementById('customer_results');
+            resultsContainer.innerHTML = '';
+
+            if (!query) {
+                resultsContainer.classList.add('hidden');
+                return;
+            }
+
+            const filtered = customers.filter(customer =>
+                customer.text.toLowerCase().includes(query.toLowerCase())
+            );
+
+            if (filtered.length > 0) {
+                filtered.forEach(customer => {
+                    const div = document.createElement('div');
+                    div.className = 'p-2 hover:bg-gray-100 cursor-pointer';
+                    div.textContent = customer.text;
+                    div.onclick = () => selectCustomer(customer);
+                    resultsContainer.appendChild(div);
+                });
+                resultsContainer.classList.remove('hidden');
+            } else {
+                resultsContainer.classList.add('hidden');
+            }
+        }
+
+        function selectCustomer(customer) {
+            document.getElementById('customer_search').value = customer.text;
+            document.getElementById('customer_id').value = customer.id;
+            document.getElementById('customer_results').classList.add('hidden');
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('#customer_search')) {
+                document.getElementById('customer_results').classList.add('hidden');
+            }
+        });
         let productCount = 1;
 
-        // Add a product entry
         function addProduct() {
             const productSection = document.getElementById('product-section');
             const newProduct = document.createElement('div');
             newProduct.classList.add('flex', 'items-center', 'space-x-4');
 
-            // Only the first product gets the discount
             if (productCount === 1) {
                 newProduct.innerHTML = `
                     <select name="products[${productCount}][product_id]" class="w-1/2 border-gray-300 rounded-md shadow-sm" required onchange="calculateTotal()">
                         <option value="">Select Product</option>
                         @foreach ($products as $product)
-                            <option value="{{ $product->id }}" data-price="{{ $product->selling_price }}" data-discount="{{ $product->discount }}">{{ $product->name }} ({{ number_format($product->selling_price, 2) }}) (Dis: {{ number_format($product->discount) }})</option>
+                            <option value="{{ $product->id }}" data-price="{{ $product->selling_price }}" data-discount="{{ $product->discount }}">{{ $product->name }}  (Dis: {{ number_format($product->discount) }})</option>
                         @endforeach
                     </select>
                     <input type="number" name="products[${productCount}][quantity]" class="w-1/4 border-gray-300 rounded-md shadow-sm" min="1" value="1" required onchange="calculateTotal()">
@@ -102,7 +194,7 @@
                     <select name="products[${productCount}][product_id]" class="w-1/2 border-gray-300 rounded-md shadow-sm" required onchange="calculateTotal()">
                         <option value="">Select Product</option>
                         @foreach ($products as $product)
-                            <option value="{{ $product->id }}" data-price="{{ $product->selling_price }}">{{ $product->name }} ({{ number_format($product->selling_price, 2) }})</option>
+                            <option value="{{ $product->id }}" data-price="{{ $product->selling_price }}">{{ $product->name }} (Dis: {{ number_format($product->discount) }})</option>
                         @endforeach
                     </select>
                     <input type="number" name="products[${productCount}][quantity]" class="w-1/4 border-gray-300 rounded-md shadow-sm" min="1" value="1" required onchange="calculateTotal()">
@@ -113,14 +205,12 @@
             productSection.appendChild(newProduct);
             productCount++;
         }
-
-        // Remove a product entry
+9
         function removeProduct(button) {
             button.closest('div').remove();
             calculateTotal();
         }
 
-        // Calculate the total value of the cart
         function calculateTotal() {
             let totalValue = 0;
             const productFields = document.querySelectorAll('select[name^="products["]');
@@ -137,7 +227,6 @@
             document.getElementById('balance').value = balance.toFixed(2);
         }
 
-        // Calculate the balance when paid value is entered
         function calculateBalance() {
             const totalValue = parseFloat(document.getElementById('total_value').value) || 0;
             const paidValue = parseFloat(document.getElementById('paid_value').value) || 0;
@@ -146,22 +235,19 @@
             document.getElementById('balance').value = balance.toFixed(2);
         }
 
-        // Initial calculation when the page loads
         document.addEventListener('DOMContentLoaded', calculateTotal);
 
-        // Function to print the receipt
         function printReceipt() {
-    const customerName = document.getElementById('customer_id').options[document.getElementById('customer_id').selectedIndex].text;
-    const totalValue = document.getElementById('total_value').value;
-    const paidValue = document.getElementById('paid_value').value;
-    const balance = document.getElementById('balance').value;
+            const customerName = document.getElementById('customer_search').value || 'Walk-in Customer';
+            const totalValue = document.getElementById('total_value').value;
+            const paidValue = document.getElementById('paid_value').value;
+            const balance = document.getElementById('balance').value;
 
-    // Get the current date and time
-    const now = new Date();
-    const formattedDate = now.toLocaleDateString();
-    const formattedTime = now.toLocaleTimeString();
+            const now = new Date();
+            const formattedDate = now.toLocaleDateString();
+            const formattedTime = now.toLocaleTimeString();
 
-    let receiptContent = `
+            let receiptContent = `
         <html>
         <head>
             <title>POS System - Receipt</title>
@@ -212,9 +298,11 @@
                 <p>** MC Product **</p>
                 <p>Address: G 10/3/1 Hemmathagama road, Mawanalla</p>
                 <p>Tel: 0758933078</p>
+                <p>Reg.No:kg/05876</p>
                 <hr>
                 <p><strong>Date:</strong> ${formattedDate}</p>
                 <p><strong>Time:</strong> ${formattedTime}</p>
+                <small><strong>Customer:</strong> ${customerName}</small>
                 <hr>
             </div>
             <table>
@@ -228,24 +316,23 @@
                 </thead>
                 <tbody>`;
 
-    // Dynamically add each product row to the table
-    const productFields = document.querySelectorAll('select[name^="products["]');
-    productFields.forEach((select) => {
-        const productName = select.options[select.selectedIndex].text;
-        const price = parseFloat(select.options[select.selectedIndex].dataset.price);
-        const quantity = parseInt(select.closest('.flex').querySelector('input').value);
-        const total = (price * quantity).toFixed(2);
+            const productFields = document.querySelectorAll('select[name^="products["]');
+            productFields.forEach((select) => {
+                const productName = select.options[select.selectedIndex].text;
+                const price = parseFloat(select.options[select.selectedIndex].dataset.price);
+                const quantity = parseInt(select.closest('.flex').querySelector('input').value);
+                const total = (price * quantity).toFixed(2);
 
-        receiptContent += `
+                receiptContent += `
             <tr>
                 <td>${productName}</td>
                 <td>${quantity}</td>
                 <td>Rs.${price.toFixed(2)}</td>
                 <td>Rs.${total}</td>
             </tr>`;
-    });
+            });
 
-    receiptContent += `
+            receiptContent += `
                 </tbody>
             </table>
             <p><strong>Total Value:</strong> Rs.${totalValue}</p>
@@ -259,12 +346,49 @@
         </html>
     `;
 
-    const printWindow = window.open('', '', 'width=600,height=600');
-    printWindow.document.write(receiptContent);
-    printWindow.document.close();
-    printWindow.print();
-}
+            const printWindow = window.open('', '', 'width=600,height=600');
+            printWindow.document.write(receiptContent);
+            printWindow.document.close();
+            printWindow.print();
+        }
 
+        function toggleModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.toggle('hidden');
 
+            if (modal.classList.contains('hidden')) {
+                location.reload();
+            }
+        }
+
+        async function updateDiscount(productId) {
+            const newDiscount = document.getElementById(`discount-${productId}`).value;
+
+            try {
+                const response = await fetch(`/products/${productId}/discount`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        discount: newDiscount
+                    })
+                });
+
+                if (!response.ok) throw new Error('Update failed');
+
+                document.querySelectorAll(`select[name^="products"] option[value="${productId}"]`).forEach(option => {
+                    option.dataset.discount = newDiscount;
+                    option.text = `${option.text.split(' (Dis:')[0]} (Dis: ${newDiscount}%)`;
+                });
+
+                calculateTotal();
+
+                alert('Discount updated successfully!');
+            } catch (error) {
+                alert('Error updating discount: ' + error.message);
+            }
+        }
     </script>
 </x-app-layout>

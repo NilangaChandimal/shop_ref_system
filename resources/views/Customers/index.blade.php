@@ -55,7 +55,7 @@
                     </div>
                 @endif
 
-                <div class="overflow-x-auto">
+                <div class="max-h-96 overflow-y-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead>
                             <tr class="bg-gray-50">
@@ -63,6 +63,7 @@
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer Information</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact Details</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Street</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Manage</th>
                             </tr>
                         </thead>
@@ -85,6 +86,9 @@
                                     </td>
                                     <td class="px-6 py-4">
                                         <div class="text-sm text-gray-600">{{ $customer->address }}</div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="text-sm text-gray-600">{{ $customer->root }}</div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <div class="flex items-center space-x-4">

@@ -59,7 +59,7 @@
                                     @endphp
                                     <tr class="hover:bg-blue-50 transition-colors duration-200">
                                         <td class="px-6 py-4 text-sm text-gray-500">{{ $loop->iteration }}</td>
-                                        <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ $sale->customer->name }}</td>
+                                        <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ $sale->customer->name }}-{{ $sale->customer->root }}</td>
                                         <td class="px-6 py-4">
                                             <div class="space-y-2">
                                                 @foreach ($sale->products as $product)

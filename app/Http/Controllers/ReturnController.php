@@ -10,7 +10,7 @@ class ReturnController extends Controller
 {
     public function index()
     {
-        $returns = ProductReturn::latest()->paginate(10);
+        $returns = ProductReturn::latest()->paginate(100);
 
         $totalReturnValue = ProductReturn::sum(DB::raw('returned_quantity * price_per_unit'));
 

@@ -24,6 +24,11 @@
                         <label for="address" class="block text-gray-700 font-bold mb-2">Address:</label>
                         <textarea id="address" name="address" class="w-full border-gray-300 rounded-md shadow-sm" required>{{ old('address') }}</textarea>
                     </div>
+                    <div class="mb-4">
+                        <label for="root" class="block text-gray-700 font-bold mb-2">Street:</label>
+                        <input type="text" id="root" name="root" value="{{ old('root') }}"
+                            class="w-full border-gray-300 rounded-md shadow-sm" required>
+                    </div>
                     {{-- <div class="mb-4">
                         <label for="loan" class="block text-gray-700 font-bold mb-2">Loan (if any):</label>
                         <input type="number" id="loan" name="loan" step="0.01" value="{{ old('loan') }}"
