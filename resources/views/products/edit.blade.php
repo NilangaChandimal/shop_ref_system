@@ -35,12 +35,21 @@
                             class="w-full border-gray-300 rounded-md shadow-sm" required>
                     </div>
 
+                    <!-- Shop Price -->
+<div class="mb-4">
+    <label for="shop_price" class="block text-gray-700 font-bold mb-2">Shop Price:</label>
+    <input type="number" id="shop_price" name="shop_price" step="0.01"
+        value="{{ old('shop_price', $product->shop_price) }}"
+        class="w-full border-gray-300 rounded-md shadow-sm" required>
+</div>
+
+
                     <!-- Discount -->
                     <div class="mb-4">
                         <label for="discount" class="block text-gray-700 font-bold mb-2">Discount (%):</label>
                         <input type="number" id="discount" name="discount" step="0.01"
                             value="{{ old('discount', $product->discount) }}"
-                            class="w-full border-gray-300 rounded-md shadow-sm" required>
+                            class="w-full border-gray-300 rounded-md shadow-sm" readonly>
                     </div>
 
                     <!-- Unit -->
@@ -89,4 +98,30 @@
             </div>
         </div>
     </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const displayedPrice = document.getElementById('displayed_price');
+        const shopPrice = document.getElementById('shop_price');
+        const originalPrice = document.getElementById('original_price');
+        const discountField = document.getElementById('discount');
+
+        function calculateDiscount() {
+            const displayed = parseFloat(displayedPrice.value);
+            const shop = parseFloat(shopPrice.value);
+
+            if (!isNaN(displayed) && !isNaN(shop) && displayed > 0) {
+                const discount = ((displayed - shop) / displayed) * 100;
+                discountField.value = discount.toFixed(2);
+            } else {
+                discountField.value = '';
+            }
+        }
+
+        displayedPrice.addEventListener('input', calculateDiscount);
+        shopPrice.addEventListener('input', calculateDiscount);
+        originalPrice.addEventListener('input', calculateDiscount);
+    });
+</script>
+
 </x-app-layout>

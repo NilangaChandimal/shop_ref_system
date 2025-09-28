@@ -19,12 +19,25 @@
                         {{ session('success') }}
                     </div>
                 @endif
-                <div class="mb-6 border-b pb-4">
+                <div class="mb-6 border-b pb-4 flex justify-between items-center flex-wrap gap-4">
+                    <!-- Left side -->
                     <button type="button" onclick="toggleModal('discountModal')"
                         class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">
                         Manage Discounts
                     </button>
+
+                    <!-- Right side -->
+                    <div class="flex items-center gap-2">
+                        <label for="sale_id_input" class="text-gray-700 font-bold">Enter Sale ID:</label>
+                        <input type="number" id="sale_id_input" class="w-32 border-gray-300 rounded-md shadow-sm" placeholder="Sale ID">
+                        <button type="button" onclick="loadSaleData()"
+                            class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">
+                            Load Sale
+                        </button>
+                    </div>
                 </div>
+
+
 
                 <div id="discountModal"
                     class="fixed inset-0 hidden bg-black bg-opacity-50 flex items-center justify-center">
@@ -390,5 +403,53 @@
                 alert('Error updating discount: ' + error.message);
             }
         }
+
+        async function loadSaleData() {
+        const saleId = document.getElementById('sale_id_input').value;
+
+        if (!saleId) {
+            alert("Please enter a Sale ID");
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/sales/${saleId}`);
+            if (!response.ok) throw new Error("Sale not found");
+
+            const data = await response.json();
+
+            // Populate customer
+            document.getElementById('customer_search').value = data.customer.name;
+            document.getElementById('customer_id').value = data.customer.id;
+
+            // Populate products
+            const section = document.getElementById('product-section');
+            section.innerHTML = ''; // Clear current product inputs
+
+            data.products.forEach((product, index) => {
+                const html = `
+                    <div class="flex items-center space-x-4" id="product-${index}">
+                        <select name="products[${index}][product_id]" class="w-1/2 border-gray-300 rounded-md shadow-sm" required onchange="calculateTotal()">
+                            <option value="">Select Product</option>
+                            ${data.allProducts.map(p => `
+                                <option value="${p.id}" data-price="${p.selling_price}" data-discount="${p.discount}"
+                                    ${p.id === product.id ? 'selected' : ''}>${p.name} (Dis: ${p.discount})</option>
+                            `).join('')}
+                        </select>
+                        <input type="number" name="products[${index}][quantity]" class="w-1/4 border-gray-300 rounded-md shadow-sm" min="1" value="${product.pivot.quantity}" required onchange="calculateTotal()">
+                        <button type="button" onclick="removeProduct(this)" class="bg-red-500 text-white p-2 rounded">Remove</button>
+                    </div>`;
+                section.insertAdjacentHTML('beforeend', html);
+            });
+
+            // Populate totals
+            document.getElementById('total_value').value = data.total_value;
+            document.getElementById('paid_value').value = data.paid_value;
+            document.getElementById('balance').value = data.balance;
+
+        } catch (error) {
+            alert(error.message);
+        }
+    }
     </script>
 </x-app-layout>

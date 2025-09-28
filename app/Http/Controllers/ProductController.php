@@ -35,6 +35,7 @@ class ProductController extends Controller
         'name' => 'required|string|max:255',
         'original_price' => 'required|numeric|min:0',
         'displayed_price' => 'required|numeric|min:0',
+        'shop_price' => 'required|numeric|min:0',
         'discount' => 'required|numeric|min:0|max:100',
         'unit' => 'required|string|max:50',
         'quantity' => 'required|integer|min:0',
@@ -54,6 +55,7 @@ class ProductController extends Controller
         'name' => $validated['name'],
         'original_price' => $validated['original_price'],
         'displayed_price' => $validated['displayed_price'],
+        'shop_price' => $validated['shop_price'],
         'discount' => $validated['discount'],
         'selling_price' => $selling_price,
         'profit' => $profit,
@@ -74,35 +76,44 @@ class ProductController extends Controller
 {
     $request->validate([
         'name' => 'required|string|max:255',
-        'original_price' => 'required|numeric',
-        'displayed_price' => 'required|numeric',
-        'discount' => 'required|numeric',
-        'unit' => 'required|string',
-        'quantity' => 'required|integer',
+        'original_price' => 'required|numeric|min:0',
+        'displayed_price' => 'required|numeric|min:0',
+        'shop_price' => 'required|numeric|min:0',
+        'discount' => 'required|numeric|min:0|max:100',
+        'unit' => 'required|string|max:50',
+        'quantity' => 'required|integer|min:0',
         'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
     ]);
+
+    // Recalculate selling price & profit
+    $selling_price = $request->displayed_price * ((100 - $request->discount) / 100);
+    $profit = $selling_price - $request->original_price;
 
     $product->name = $request->name;
     $product->original_price = $request->original_price;
     $product->displayed_price = $request->displayed_price;
+    $product->shop_price = $request->shop_price;
     $product->discount = $request->discount;
+    $product->selling_price = $selling_price;
+    $product->profit = $profit;
     $product->unit = $request->unit;
     $product->quantity = $request->quantity;
 
+    // Handle image upload
     if ($request->hasFile('image')) {
-        if ($product->image && Storage::exists($product->image)) {
-            Storage::delete($product->image);
+        if ($product->image && Storage::disk('public')->exists($product->image)) {
+            Storage::disk('public')->delete($product->image);
         }
 
-        $imagePath = $request->file('image')->store('images', 'public');
-
+        $imagePath = $request->file('image')->store('products', 'public');
         $product->image = $imagePath;
     }
 
     $product->save();
 
-    return redirect()->route('products.index')->with('success', 'Product updated successfully.');
+    return redirect()->route('products.index')->with('success', 'Product updated successfully!');
 }
+
     public function destroy(Product $product)
     {
         $product->delete();

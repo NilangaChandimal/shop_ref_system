@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->decimal('original_price', 10, 2);
             $table->decimal('displayed_price', 10, 2);
+            $table->decimal('shop_price', 10, 2);
             $table->decimal('discount', 5, 2); // Discount as percentage
             $table->decimal('selling_price', 10, 2);
             $table->decimal('profit', 10, 2)->default(0); // Removed ->after('selling_price')

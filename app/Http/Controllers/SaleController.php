@@ -149,5 +149,20 @@ public function processReturn(Request $request, $saleId)
 
     return redirect()->route('sales.index')->with('success', 'Product returned and totals updated successfully.');
 }
+public function destroy($id)
+{
+    $sale = Sale::with('products')->findOrFail($id);
+
+    foreach ($sale->products as $product) {
+        $product->quantity += $product->pivot->quantity;
+        $product->save();
+    }
+
+    $sale->products()->detach();
+    $sale->delete();
+
+    return redirect()->back()->with('success', 'Sale deleted and stock updated successfully.');
+}
+
 
 }

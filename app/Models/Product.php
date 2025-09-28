@@ -10,6 +10,7 @@ class Product extends Model
         'name',
         'original_price',
         'displayed_price',
+        'shop_price',
         'discount',
         'selling_price',
         'unit',

@@ -27,8 +27,13 @@
                     </div>
 
                     <div class="mb-4">
+                        <label for="shop_price" class="block text-gray-700">Shop Price</label>
+                        <input type="number" name="shop_price" id="shop_price" step="0.01" class="w-full border-gray-300 rounded-md shadow-sm" required>
+                    </div>
+
+                    <div class="mb-4">
                         <label for="discount" class="block text-gray-700">Discount (%)</label>
-                        <input type="number" name="discount" id="discount" step="0.01" max="100" class="w-full border-gray-300 rounded-md shadow-sm" required>
+                        <input type="number" name="discount" id="discount" step="0.01" max="100" class="w-full border-gray-300 rounded-md shadow-sm" readonly>
                     </div>
 
                     <div class="mb-4">
@@ -54,4 +59,28 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const displayedPrice = document.getElementById('displayed_price');
+            const shopPrice = document.getElementById('shop_price');
+            const discountField = document.getElementById('discount');
+
+            function calculateDiscount() {
+                const displayed = parseFloat(displayedPrice.value);
+                const shop = parseFloat(shopPrice.value);
+
+                if (!isNaN(displayed) && !isNaN(shop) && shop > 0) {
+                    const discount = ((displayed - shop) / displayed) * 100;
+                    discountField.value = discount.toFixed(2); // round to 2 decimals
+                } else {
+                    discountField.value = '';
+                }
+            }
+
+            displayedPrice.addEventListener('input', calculateDiscount);
+            shopPrice.addEventListener('input', calculateDiscount);
+        });
+    </script>
+
 </x-app-layout>

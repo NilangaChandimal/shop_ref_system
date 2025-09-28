@@ -1,4 +1,31 @@
 <x-app-layout>
+    {{-- <style>
+        body {
+            font-family: Arial, sans-serif;
+            width: 2.5in;
+            margin: 0;
+            padding: 10px;
+        }
+        h1, p {
+            text-align: center;
+            margin: 5px 0;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .footer {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 12px;
+        }
+        .logo {
+            display: block;
+            margin: 0 auto;
+            width: 80px;
+            height: 80px;
+        }
+    </style> --}}
     <x-slot name="header">
         <div class="relative flex justify-between items-center">
             <h2 class="text-2xl font-bold text-gray-900 tracking-tight">
@@ -16,6 +43,44 @@
             <div class="bg-white shadow-lg rounded-xl overflow-hidden">
                 <div class="p-6">
                     <h3 class="text-xl font-semibold text-gray-800 mb-6">Loan Transactions</h3>
+
+                    <div class="mt-8">
+                        <button onclick="printCustomerLoans()" class="px-4 py-2 bg-indigo-600 text-white rounded-md shadow-md hover:bg-indigo-700">
+                            Print Summary
+                        </button>
+                    </div>
+
+                    <!-- Printable Section -->
+<div id="print-area" class="hidden">
+    <div style="font-family: Arial, sans-serif; width: 2.5in; margin: 0; padding: 10px;">
+        <div class="header" style="text-align: center; margin-bottom: 10px;">
+            <img src="{{ asset('images/mc.png') }}" alt="MC PRODUCT Logo"
+                 style="display: block; margin: 0 auto; width: 80px; height: 80px;">
+            <p style="text-align: center; margin: 5px 0;"><strong>** MC Product **</strong></p>
+            <p style="text-align: center; margin: 5px 0;">Address: G 10/3/1 Hemmathagama road, Mawanalla</p>
+            <p style="text-align: center; margin: 5px 0;">Tel: 0758933078</p>
+            <p style="text-align: center; margin: 5px 0;">Reg.No:kg/05876</p>
+            <hr>
+            <p style="text-align: center; margin: 5px 0;"><strong>Date:</strong> {{ date('Y-m-d') }}</p>
+            <p style="text-align: center; margin: 5px 0;"><strong>Time:</strong> {{ date('H:i:s') }}</p>
+            <p style="text-align: center; margin: 5px 0;"><strong>Customer:</strong> {{ $customer->name }}</p>
+            <hr>
+        </div>
+        <hr>
+            @foreach ($loans as $loan)
+
+
+        <p style="text-align: center; margin-top: 20px; font-weight: bold;">Total Loan Balance: Rs.{{ number_format($totalLoanAmount, 2) }} - ({{ $loan->created_at->format('Y-m-d') }})</p>
+        @endforeach
+        <div class="footer" style="margin-top: 15px; text-align: center; font-size: 12px;">
+            <p>Thank you for your purchase!</p>
+            <p>Visit again soon!</p>
+        </div>
+    </div>
+</div>
+
+
+
 
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
@@ -91,4 +156,17 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function printCustomerLoans() {
+            const printContents = document.getElementById('print-area').innerHTML;
+            const originalContents = document.body.innerHTML;
+
+            document.body.innerHTML = printContents;
+            window.print();
+            document.body.innerHTML = originalContents;
+            location.reload(); // To restore event listeners
+        }
+    </script>
+
 </x-app-layout>

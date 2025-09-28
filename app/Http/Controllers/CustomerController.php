@@ -74,4 +74,28 @@ public function destroy(Customer $customer)
     return redirect()->route('customers.index')->with('success', 'Customer deleted successfully!');
 }
 
+public function deleted(Request $request)
+{
+    $search = $request->input('search', '');
+
+    $query = Customer::onlyTrashed();
+
+    if (!empty($search)) {
+        $query->where('name', 'like', "%$search%");
+    }
+
+    $deletedCustomers = $query->get();
+
+    return view('customers.deleted', compact('deletedCustomers', 'search'));
+}
+
+public function restore($id)
+{
+    $customer = Customer::onlyTrashed()->findOrFail($id);
+    $customer->restore();
+
+    return redirect()->route('customers.deleted')->with('success', 'Customer restored.');
+}
+
+
 }

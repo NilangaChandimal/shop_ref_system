@@ -38,7 +38,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/products/display', [ProductController::class, 'display'])->name('products.display');
     Route::get('/products/add', [ProductController::class, 'add'])->name('products.add');
     Route::put('/products/{product}/add', [ProductController::class, 'updateProduct'])->name('products.updateProduct');
-    
+
 });
 
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
@@ -48,12 +48,17 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/customers/{customer}/edit', [CustomerController::class, 'edit'])->name('customers.edit');
     Route::put('/customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
     Route::delete('/customers/{customer}', [CustomerController::class, 'destroy'])->name('customers.destroy');
+    Route::get('/customers/deleted', [CustomerController::class, 'deleted'])->name('customers.deleted');
+    Route::put('/customers/restore/{id}', [CustomerController::class, 'restore'])->name('customers.restore');
+
+
 });
 
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/sales', [SaleController::class, 'index'])->name('sales.index');
     Route::get('/sales/create', [SaleController::class, 'create'])->name('sales.create');
     Route::post('/sales', [SaleController::class, 'store'])->name('sales.store');
+    Route::delete('/sales/{id}', [SaleController::class, 'destroy'])->name('sales.destroy');
     Route::get('/sales/{sale}/return', [SaleController::class, 'showReturnPage'])->name('returns.create');
     Route::post('/sales/{sale}/return', [SaleController::class, 'processReturn'])->name('returns.store');
 
