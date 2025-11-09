@@ -37,6 +37,7 @@
                 {{ $slot }}
             </main>
         </div>
+@stack('scripts')
 
         @stack('modals')
         @if (session('success'))

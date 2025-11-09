@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ProductController extends Controller
 {
@@ -48,7 +50,7 @@ class ProductController extends Controller
         $imagePath = $request->file('image')->store('products', 'public');
     }
 
-    $selling_price = $validated['displayed_price'] * ((100 - $validated['discount']) / 100);
+    $selling_price = $validated['shop_price'];
     $profit = $selling_price - $validated['original_price'];
 
     Product::create([
@@ -86,7 +88,7 @@ class ProductController extends Controller
     ]);
 
     // Recalculate selling price & profit
-    $selling_price = $request->displayed_price * ((100 - $request->discount) / 100);
+    $selling_price = $request->shop_price;
     $profit = $selling_price - $request->original_price;
 
     $product->name = $request->name;
@@ -188,5 +190,66 @@ public function updateProduct(Request $request, Product $product)
 
     return redirect()->route('products.add')->with('success', 'Product stock updated successfully!');
 }
+
+public function import(Request $request)
+{
+    $request->validate([
+        'file' => 'required|mimes:xlsx,xls',
+    ]);
+
+    $file = $request->file('file');
+    $spreadsheet = IOFactory::load($file->getRealPath());
+    $sheet = $spreadsheet->getActiveSheet();
+    $rows = $sheet->toArray();
+
+    // Skip header row
+    foreach (array_slice($rows, 1) as $row) {
+        $id = intval($row[0] ?? 0); // ✅ '#' column (product ID)
+        $name = trim($row[2] ?? '');
+        $original_price = floatval(str_replace(['Rs.', ' '], '', $row[3] ?? 0));
+        $displayed_price = floatval(str_replace(['Rs.', ' '], '', $row[4] ?? 0));
+        $shop_price = floatval(str_replace(['Rs.', ' '], '', $row[5] ?? 0));
+        $discount = floatval(str_replace(['%', ' '], '', $row[6] ?? 0));
+        $profit = floatval(str_replace(['Rs.', ' '], '', $row[7] ?? 0));
+        $unit = trim($row[8] ?? '');
+        $quantity = intval($row[9] ?? 0);
+
+        if (!$name || !$original_price || !$displayed_price) {
+            continue;
+        }
+
+        if ($id && Product::find($id)) {
+            $product = Product::find($id);
+            $product->update([
+                'name' => $name,
+                'original_price' => $original_price,
+                'displayed_price' => $displayed_price,
+                'shop_price' => $shop_price,
+                'discount' => round($discount, 2),
+                'selling_price' => round($shop_price, 2),
+                'profit' => round($profit, 2),
+                'unit' => $unit,
+                'quantity' => $quantity,
+            ]);
+
+        } else {
+            Product::create([
+                'name' => $name,
+                'original_price' => $original_price,
+                'displayed_price' => $displayed_price,
+                'shop_price' => $shop_price,
+                'discount' => round($discount, 2),
+                'selling_price' => round($shop_price, 2),
+                'profit' => round($profit, 2),
+                'unit' => $unit,
+                'quantity' => $quantity,
+                'image' => null,
+            ]);
+        }
+    }
+
+    return back()->with('success', 'Products imported/updated successfully!');
+}
+
 
 }

@@ -38,6 +38,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('/products/display', [ProductController::class, 'display'])->name('products.display');
     Route::get('/products/add', [ProductController::class, 'add'])->name('products.add');
     Route::put('/products/{product}/add', [ProductController::class, 'updateProduct'])->name('products.updateProduct');
+    Route::post('/products/import', [ProductController::class, 'import'])->name('products.import');
+
 
 });
 
