@@ -20,7 +20,7 @@ class ProductController extends Controller
         $query->where('name', 'like', "%$search%");
     }
 
-    $products = $query->paginate(100);
+    $products = $query->get();
     $totalProducts = $query->count();
 
     return view('products.index', compact('products', 'totalProducts', 'search'));
