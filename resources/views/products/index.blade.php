@@ -115,7 +115,8 @@
                         <tbody class="bg-white divide-y divide-gray-200">
                             @forelse ($products as $product)
                                 <tr class="hover:bg-gray-50 transition-colors duration-200">
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $product->id }}
+                                    {{-- get iteration --}}
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"> {{ $loop->iteration }}</td>
                                     </td>
 
                                     <!-- Image Column -->
